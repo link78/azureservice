@@ -11,8 +11,8 @@ using System;
 namespace BuildingService.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20180106154651_initial")]
-    partial class initial
+    [Migration("20180117024921_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -28,7 +28,9 @@ namespace BuildingService.Migrations
 
                     b.Property<int>("EmployeeCount");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
 
                     b.HasKey("ID");
 
@@ -40,30 +42,37 @@ namespace BuildingService.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("DepartmentID");
+                    b.Property<int>("DepartmentId");
 
-                    b.Property<string>("First_name");
+                    b.Property<string>("First_name")
+                        .IsRequired()
+                        .HasMaxLength(50);
 
                     b.Property<DateTime>("HireDate");
 
-                    b.Property<string>("Last_Name");
+                    b.Property<string>("Last_Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
 
-                    b.Property<string>("Position");
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(50);
 
                     b.Property<string>("Title");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("DepartmentID");
+                    b.HasIndex("DepartmentId");
 
                     b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("BuildingService.Models.Employees", b =>
                 {
-                    b.HasOne("BuildingService.Models.Department")
+                    b.HasOne("BuildingService.Models.Department", "Department")
                         .WithMany("Employees")
-                        .HasForeignKey("DepartmentID");
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

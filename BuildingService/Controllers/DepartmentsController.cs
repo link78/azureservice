@@ -5,17 +5,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using BuildingService.Abstract;
 using BuildingService.Models;
+using AutoMapper;
+using StackExchange.Redis;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace BuildingService.Controllers
 {
     [Produces("application/json")]
-    [Route("api/[controller]")]
+    [Route("api/departments")]
     public class DepartmentsController : Controller
     {
         // GET: /<controller>/
         private IRepoDepartment repo;
+        
 
         public DepartmentsController (IRepoDepartment _repo)
         {
@@ -26,31 +29,48 @@ namespace BuildingService.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            return this.Ok(repo.GetAll);
+            var results = repo.GetAll;
+           
+            // using auto mapper
+            var model = Mapper.Map<IEnumerable<DepartmentViewModle>>(results);
+            
+            return this.Ok(model);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public IActionResult Get(int id, bool includeEmployee = false)
         {
-            var m = repo.GetDepartment(id);
 
-            if (m != null)
+            var model = repo.GetDepartment(id, includeEmployee);
+            if(model == null)
             {
-                return this.Ok(m);
+                NotFound();
             }
-            else
+
+            if (includeEmployee)
             {
-                return this.NotFound();
+           
+
+                var resultFromdepartment = Mapper.Map<DepartmentDto>(model);
+                return Ok(resultFromdepartment);
+               
             }
+
+            // whithout employees
+            var departmentOnly = Mapper.Map<DepartmentViewModle>(model);
+            
+
+            return Ok(departmentOnly);
+                           
         }
 
         // POST api/values
         [HttpPost]
         public IActionResult Create([FromBody] Department d)
         {
+           
             repo.CreateNew(d);
-          
 
             return this.Ok(d);
         }
@@ -60,14 +80,10 @@ namespace BuildingService.Controllers
         public IActionResult Update(int id, [FromBody] Department d)
         {
             d.ID = id;
-
-            if(repo.Update(d)== null)
-            {
-                return this.NotFound();
-            } else
-            {
-                return this.Ok(d.ID);
-            }
+            
+                repo.Update(d);
+                return NoContent();
+       
         }
 
         // DELETE api/values/5
@@ -85,5 +101,8 @@ namespace BuildingService.Controllers
                 return this.Ok(q.ID);
             }
         }
+
+        
+     
     }
 }

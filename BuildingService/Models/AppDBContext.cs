@@ -8,7 +8,11 @@ namespace BuildingService.Models
 {
     public class AppDBContext:DbContext
     {
-        public AppDBContext(DbContextOptions<AppDBContext> options) : base(options) { }
+        public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
+        {
+
+            Database.Migrate();
+        }
 
 
         public DbSet<Department> Departments { get; set; }
