@@ -14,6 +14,9 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Swagger;
 using Newtonsoft.Json.Serialization;
 using BuildingService.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BuildingService
 {
@@ -47,20 +50,61 @@ namespace BuildingService
 #else
             services.AddTransient<IMailService,CloudMailService>();
 #endif
-
+            // IdentityConnection
 
             services.AddDbContext<AppDBContext>(options => 
             options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
+
             services.AddScoped<IRepoDepartment,RepoDepartment>();
 
+            services.AddDbContext<AppIdentityContext>(options =>
+            options.UseSqlServer(Configuration["ConnectionStrings:IdentityConnection"]));
+            services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<AppIdentityContext>();
+
+            // configure
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Events.OnRedirectToLogin = ctx =>
+                {
+                    if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                    {
+                        ctx.Response.Clear();
+                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.FromResult<object>(null);
+                    }
+                    ctx.Response.Redirect(ctx.RedirectUri);
+                    return Task.CompletedTask;
+                };
+
+                options.Events.OnRedirectToAccessDenied = ctx =>
+                {
+                    if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                    {
+                        ctx.Response.Clear();
+                        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return Task.FromResult<object>(null);
+                    }
+                    ctx.Response.Redirect(ctx.RedirectUri);
+                    return Task.CompletedTask;
+                };
+            });
 
 
 
 
             services.AddMvc();
+
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info
+                {
+                    Title = "Artist Micro-Services",
+                    Version = "v1",
+                    Description = "Building secured Restful web service with EFCore 2 " +
+                    "using token, cookie authentification and Https",
+                    Contact = new Swashbuckle.AspNetCore.Swagger.Contact() { Name = "Kade", Email = "kaderderk@gmail.com" }
+                });
             });
 
 
@@ -80,10 +124,14 @@ namespace BuildingService
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseAuthentication();
+            app.UseStaticFiles();
+            
             // seeding the data
             context.EnsuredSeedData();
 
+
+            SeedIdentity.Seed(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider);
             // setting auto mapper
 
             AutoMapper.Mapper.Initialize(cfg =>
@@ -94,18 +142,22 @@ namespace BuildingService
                 cfg.CreateMap<EmployeeDtoCreation, Employees>();
             });
             app.UseSwagger();
+           
+
+            
+
+
+
+            app.UseMvc();
+
+
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
-            app.UseMvc();
 
 
-
-
-           
-         
         }
     }
 }
