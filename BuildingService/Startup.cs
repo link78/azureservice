@@ -37,15 +37,8 @@ namespace BuildingService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-            //    .AddJsonOptions(o =>
-            //{
-            //    if (o.SerializerSettings.ContractResolver != null)
-            //    {
-            //        var contact = o.SerializerSettings.ContractResolver as DefaultContractResolver;
-            //        contact.NamingStrategy = null;
-            //    }
-            //});
+            
+            
 
 
 #if DEBUG
@@ -60,6 +53,11 @@ namespace BuildingService
             options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
             services.AddScoped<IRepoDepartment,RepoDepartment>();
 
+
+
+
+
+            services.AddMvc();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
@@ -100,13 +98,14 @@ namespace BuildingService
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
+
             app.UseMvc();
 
 
 
 
            
-          ///  SeedData.Initialize(app);
+         
         }
     }
 }

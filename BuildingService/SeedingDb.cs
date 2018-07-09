@@ -10,6 +10,9 @@ namespace BuildingService
     {
         public static void EnsuredSeedData(this AppDBContext context)
         {
+
+
+
             if (context.Departments.Any())
             {
                 return;
