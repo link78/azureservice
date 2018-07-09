@@ -112,6 +112,8 @@ namespace BuildingService.Controllers
                 }
             }
 
+            return BadRequest("Failed to create token");
+
         }
     }
 }
