@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using BuildingService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -19,13 +20,16 @@ namespace BuildingService.Controllers
         private readonly UserManager<AppUser> userManager;
         private readonly SignInManager<AppUser> signIn;
         private readonly IPasswordHasher<AppUser> hasher;
+        private readonly IConfiguration Config;
 
 
-        public AuthController(UserManager<AppUser> _userManager, SignInManager<AppUser> _signIn, IPasswordHasher<AppUser> _hasher)
+        public AuthController(UserManager<AppUser> _userManager, SignInManager<AppUser> _signIn,
+            IPasswordHasher<AppUser> _hasher, IConfiguration _config)
         {
             userManager = _userManager;
             signIn = _signIn;
             hasher = _hasher;
+            Config = _config;
         }
 
 
@@ -82,9 +86,9 @@ namespace BuildingService.Controllers
         public async Task<IActionResult> GenerateToken(Credential model)
         {
             var user = await userManager.FindByNameAsync(model.UserName);
-            if(user != null)
+            if (user != null)
             {
-                if(hasher.VerifyHashedPassword(user,user.PasswordHash,model.Password)== PasswordVerificationResult.Success)
+                if (hasher.VerifyHashedPassword(user, user.PasswordHash, model.Password) == PasswordVerificationResult.Success)
                 {
                     var myClaims = new[]
                     {
@@ -94,11 +98,11 @@ namespace BuildingService.Controllers
                         new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
                     };
 
-                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("jqdkjasdkgh1e7621863e812equdsqgv"));
+                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config["Auth:Key"]));
                     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                     var token = new JwtSecurityToken(
-                        issuer: "https://localhost:44378/",
-                        audience: "https://localhost:44378/",
+                        issuer: Config["Auth:Issuer"],
+                        audience: Config["Auth:Audience"],
                         claims: myClaims,
                         expires: DateTime.UtcNow.AddDays(1),
                         signingCredentials: creds

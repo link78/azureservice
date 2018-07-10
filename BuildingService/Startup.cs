@@ -17,6 +17,9 @@ using BuildingService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BuildingService
 {
@@ -90,6 +93,29 @@ namespace BuildingService
                 };
             });
 
+            services.AddAuthentication(opts =>
+            {
+                opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+           .AddJwtBearer(jwt =>
+           {
+               jwt.RequireHttpsMetadata = false;
+               jwt.SaveToken = true;
+               jwt.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+               {
+                   ValidIssuer = Configuration["Auth:Issuer"],
+                   ValidAudience = Configuration["Auth:Audience"],
+                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Auth:Key"])),
+                   ClockSkew = TimeSpan.Zero,
+
+                   RequireExpirationTime = true,
+                   ValidateIssuer = true,
+                   ValidateIssuerSigningKey = true,
+                   ValidateAudience = true
+               };
+           });
 
 
 
@@ -102,8 +128,8 @@ namespace BuildingService
                     Title = "Artist Micro-Services",
                     Version = "v1",
                     Description = "Building secured Restful web service with EFCore 2 " +
-                    "using token, cookie authentification and Https",
-                    Contact = new Swashbuckle.AspNetCore.Swagger.Contact() { Name = "Kade", Email = "kaderderk@gmail.com" }
+                     "using token, cookie authentification and Https",
+                    Contact = new Contact() { Name = "Kade", Email = "kaderderk@gmail.com" }
                 });
             });
 
@@ -126,7 +152,7 @@ namespace BuildingService
             }
             app.UseAuthentication();
             app.UseStaticFiles();
-            
+            app.UseSwagger();
             // seeding the data
             context.EnsuredSeedData();
 
@@ -141,22 +167,22 @@ namespace BuildingService
                 cfg.CreateMap<Employees, EmployeeDto>();
                 cfg.CreateMap<EmployeeDtoCreation, Employees>();
             });
-            app.UseSwagger();
-           
-
-            
 
 
 
-            app.UseMvc();
+
+
+
+
+
 
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API v1");
             });
 
-
+            app.UseMvc();
 
         }
     }

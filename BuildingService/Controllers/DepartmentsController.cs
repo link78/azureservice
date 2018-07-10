@@ -7,11 +7,13 @@ using BuildingService.Abstract;
 using BuildingService.Models;
 using AutoMapper;
 using StackExchange.Redis;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace BuildingService.Controllers
 {
+   
     [Produces("application/json")]
     [Route("api/departments")]
     public class DepartmentsController : Controller
