@@ -93,7 +93,7 @@ namespace BuildingService
                 };
             });
 
-            services.AddAuthentication(opts =>
+        /**    services.AddAuthentication(opts =>
             {
                 opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -116,7 +116,7 @@ namespace BuildingService
                    ValidateAudience = true
                };
            });
-
+**/
 
 
             services.AddMvc();
