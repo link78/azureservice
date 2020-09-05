@@ -1,0 +1,1 @@
+Building micro service using .net core and azure database. This is a restful web api that enable user to create resources, update,delete and last read them. Click this link to check the Swagger UI: http://departmenservice.azurewebsites.net/swagger/
